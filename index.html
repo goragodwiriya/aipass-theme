@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#66747a" />
+  <title>Lenn — Salt from the Guérande marshes</title>
+  <meta name="description" content="Lenn is a two-person salt harvest from the tidal marshes of Guérande." />
+
+  <!-- Type: expressive serif + restrained grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #172126;
+      --deep: #25373d;
+      --water: #647980;
+      --foam: #e8e9e3;
+      --clay: #a18f7e;
+      --salt: #f5f2ea;
+      --line: rgba(23, 33, 38, .17);
+      --serif: "Instrument Serif", Georgia, serif;
+      --mono: "DM Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--clay); scroll-behavior: auto; }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--ink);
+      background: var(--clay);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .02em;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    .grain {
+      position: fixed;
+      pointer-events: none;
+      z-index: 50;
+      inset: 0;
+      opacity: .18;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+    }
+
+    .eyebrow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: .13em;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 20px;
+      height: 1px;
+      background: currentColor;
+    }
+
+    /* Navigation */
+    .nav {
+      position: fixed;
+      z-index: 20;
+      top: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 28px;
+      color: var(--foam);
+      mix-blend-mode: difference;
+    }
+    .nav__logo {
+      font-family: var(--serif);
+      font-size: 31px;
+      line-height: .7;
+      letter-spacing: -.08em;
+    }
+    .nav__links { display: flex; gap: 22px; }
+    .nav__links a {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      transition: opacity .25s ease;
+    }
+    .nav__links a:hover { opacity: .55; }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      height: 210vh;
+      background: var(--clay);
+    }
+    .hero__sticky {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    #water {
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+    .hero__wordmark {
+      position: absolute;
+      z-index: 0;
+      top: 46%;
+      left: 50%;
+      color: rgba(242, 245, 240, .9);
+      font-family: var(--serif);
+      font-size: clamp(150px, 29vw, 520px);
+      line-height: .55;
+      letter-spacing: -.115em;
+      transform: translate(-50%, -50%) scaleX(1.03);
+      will-change: transform, filter, opacity;
+      user-select: none;
+    }
+    .hero__bottom {
+      position: absolute;
+      z-index: 3;
+      bottom: 28px;
+      left: 28px;
+      right: 28px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      color: var(--foam);
+    }
+    .hero__intro {
+      max-width: 310px;
+      margin: 12px 0 0 30px;
+      font-family: var(--serif);
+      font-size: clamp(24px, 3vw, 40px);
+      line-height: .96;
+      letter-spacing: -.04em;
+    }
+    .scroll-mark {
+      display: grid;
+      gap: 8px;
+      justify-items: end;
+      text-transform: uppercase;
+      font-size: 9px;
+      letter-spacing: .12em;
+    }
+    .scroll-mark i {
+      display: block;
+      width: 1px;
+      height: 54px;
+      background: currentColor;
+      transform-origin: top;
+    }
+    .crystals {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 11% 76%, #f7f3e8 0 2px, transparent 3px),
+        radial-gradient(circle at 14% 80%, #f7f3e8 0 4px, transparent 5px),
+        radial-gradient(circle at 20% 73%, #f7f3e8 0 2px, transparent 3px),
+        radial-gradient(circle at 28% 84%, #f7f3e8 0 6px, transparent 7px),
+        radial-gradient(circle at 43% 78%, #f7f3e8 0 2px, transparent 3px),
+        radial-gradient(circle at 59% 82%, #f7f3e8 0 5px, transparent 6px),
+        radial-gradient(circle at 68% 72%, #f7f3e8 0 3px, transparent 4px),
+        radial-gradient(circle at 80% 82%, #f7f3e8 0 6px, transparent 7px),
+        radial-gradient(circle at 91% 74%, #f7f3e8 0 2px, transparent 3px);
+    }
+
+    /* Shared sections */
+    section:not(.hero) { position: relative; }
+    .section-pad { padding: 14vw 6vw; }
+    .section-title {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(58px, 10vw, 156px);
+      font-weight: 400;
+      letter-spacing: -.065em;
+      line-height: .78;
+    }
+
+    /* Manifesto */
+    .manifesto {
+      min-height: 100svh;
+      display: grid;
+      align-content: space-between;
+      padding: 9vw 6vw 6vw;
+      background: var(--clay);
+    }
+    .manifesto__copy {
+      max-width: 850px;
+      margin-left: 13vw;
+      font-family: var(--serif);
+      font-size: clamp(43px, 7vw, 104px);
+      line-height: .89;
+      letter-spacing: -.06em;
+    }
+    .manifesto__copy em { color: var(--salt); }
+    .manifesto__foot {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 90px;
+      border-top: 1px solid var(--line);
+    }
+
+    /* Harvest story */
+    .harvest {
+      min-height: 300vh;
+      background: var(--deep);
+      color: var(--foam);
+    }
+    .harvest__sticky {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      display: grid;
+      grid-template-columns: .7fr 1.3fr;
+      overflow: hidden;
+    }
+    .harvest__meta {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 28px;
+      border-right: 1px solid rgba(232,233,227,.2);
+    }
+    .harvest__moments {
+      position: relative;
+      padding: 13vh 7vw;
+    }
+    .moment {
+      position: absolute;
+      max-width: 620px;
+      opacity: 0;
+      transform: translateY(45px);
+    }
+    .moment:nth-child(1) { top: 17%; }
+    .moment:nth-child(2) { top: 40%; }
+    .moment:nth-child(3) { top: 63%; }
+    .moment__number {
+      display: block;
+      margin-bottom: 25px;
+      color: #aebfc0;
+      font-size: 10px;
+      letter-spacing: .15em;
+    }
+    .moment h3 {
+      margin: 0 0 16px;
+      font-family: var(--serif);
+      font-size: clamp(48px, 6vw, 96px);
+      font-weight: 400;
+      letter-spacing: -.06em;
+      line-height: .8;
+    }
+    .moment p {
+      max-width: 330px;
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+    .harvest__line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 0;
+      background: var(--foam);
+    }
+
+    /* Products */
+    .salts {
+      background: var(--salt);
+      color: var(--ink);
+      padding: 9vw 4vw 4vw;
+    }
+    .salts__top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin: 0 2vw 12vw;
+    }
+    .salts__lead {
+      max-width: 290px;
+      align-self: end;
+      line-height: 1.65;
+    }
+    .product {
+      display: grid;
+      grid-template-columns: .85fr 1.15fr;
+      min-height: 70vh;
+      border-top: 1px solid var(--line);
+    }
+    .product__swatch {
+      position: relative;
+      min-height: 380px;
+      overflow: hidden;
+      background: #e4e0d6;
+    }
+    .product__swatch::before {
+      content: "";
+      position: absolute;
+      width: 55%;
+      aspect-ratio: 1;
+      top: 50%;
+      left: 50%;
+      border-radius: 48% 52% 47% 53%;
+      transform: translate(-50%, -50%) rotate(20deg);
+      box-shadow: 0 30px 45px rgba(20, 23, 22, .13);
+    }
+    .product:nth-of-type(2) .product__swatch { background: #d6d6ce; }
+    .product:nth-of-type(2) .product__swatch::before { background: #f6f4ed; }
+    .product:nth-of-type(3) .product__swatch { background: #919a91; }
+    .product:nth-of-type(3) .product__swatch::before { background: #7c8175; }
+    .product:nth-of-type(4) .product__swatch { background: #c9b8a7; }
+    .product:nth-of-type(4) .product__swatch::before { background: #898478; }
+    .product__info {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 32px 6vw;
+    }
+    .product__index { font-size: 10px; color: #667075; }
+    .product h3 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(54px, 8vw, 128px);
+      font-weight: 400;
+      letter-spacing: -.075em;
+      line-height: .75;
+    }
+    .product__detail {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 560px;
+      padding-top: 35px;
+      border-top: 1px solid var(--line);
+      line-height: 1.65;
+    }
+    .product__detail strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 9px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    /* Visit */
+    .visit {
+      min-height: 100svh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #78858a;
+      color: var(--salt);
+    }
+    .visit__image {
+      min-height: 65vh;
+      overflow: hidden;
+      background:
+        linear-gradient(105deg, rgba(29,48,55,.08), rgba(29,48,55,.5)),
+        repeating-linear-gradient(174deg, transparent 0 56px, rgba(242,245,240,.28) 57px 58px, transparent 59px 94px),
+        linear-gradient(135deg, #9caaa8 0%, #60777b 42%, #334e55 100%);
+    }
+    .visit__content {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 8vw 6vw 4vw;
+    }
+    .visit__content p {
+      max-width: 385px;
+      font-family: var(--serif);
+      font-size: clamp(30px, 4vw, 56px);
+      line-height: .92;
+      letter-spacing: -.045em;
+    }
+    .button {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 36px;
+      padding: 15px 17px;
+      border: 1px solid currentColor;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: .1em;
+      transition: background .3s, color .3s;
+    }
+    .button:hover { background: var(--salt); color: var(--deep); }
+    .button::after { content: "↗"; font-size: 16px; line-height: 0; }
+
+    /* Footer */
+    footer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 30px;
+      padding: 7vw 6vw 28px;
+      background: var(--ink);
+      color: var(--salt);
+    }
+    .footer__word {
+      margin: 35px 0 -1vw;
+      font-family: var(--serif);
+      font-size: clamp(140px, 25vw, 420px);
+      line-height: .58;
+      letter-spacing: -.11em;
+    }
+    .footer__links {
+      display: flex;
+      gap: 16px;
+      align-items: start;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: .09em;
+    }
+    .footer__bottom {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 7vw;
+      color: rgba(245,242,234,.65);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    @media (max-width: 700px) {
+      .nav { padding: 18px; }
+      .nav__links a:not(:last-child) { display: none; }
+      .hero__bottom { left: 18px; right: 18px; bottom: 20px; }
+      .hero__intro { margin-left: 0; max-width: 230px; }
+      .manifesto { padding: 110px 7vw 7vw; }
+      .manifesto__copy { margin-left: 0; }
+      .manifesto__foot { display: block; }
+      .manifesto__foot span:last-child { display: block; margin-top: 20px; }
+      .harvest__sticky { grid-template-columns: 1fr; }
+      .harvest__meta { height: 145px; border-right: 0; border-bottom: 1px solid rgba(232,233,227,.2); }
+      .harvest__moments { padding: 9vh 8vw; }
+      .moment { max-width: 94%; }
+      .moment:nth-child(1) { top: 14%; }
+      .moment:nth-child(2) { top: 42%; }
+      .moment:nth-child(3) { top: 69%; }
+      .salts { padding: 20vw 0 0; }
+      .salts__top { display: block; margin: 0 7vw 20vw; }
+      .salts__lead { margin-top: 30px; }
+      .product { grid-template-columns: 1fr; }
+      .product__swatch { min-height: 53vw; }
+      .product__info { min-height: 62vw; padding: 24px 7vw; }
+      .product__detail { font-size: 10px; }
+      .visit { grid-template-columns: 1fr; }
+      .visit__image { min-height: 58svh; }
+      .visit__content { min-height: 65svh; padding: 14vw 7vw 9vw; }
+      footer { display: block; padding: 15vw 7vw 20px; }
+      .footer__links { margin-top: 50px; }
+      .footer__bottom { display: grid; gap: 9px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .grain { display: none; }
+      #water { opacity: .7; }
+      .moment { position: relative; top: auto !important; opacity: 1; transform: none; margin: 45px 0; }
+      .harvest { min-height: auto; }
+      .harvest__sticky { position: relative; height: auto; min-height: 100svh; }
+      .harvest__moments { padding-bottom: 50px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grain"></div>
+
+  <nav class="nav">
+    <a class="nav__logo" href="#" aria-label="Lenn home">Lenn</a>
+    <div class="nav__links">
+      <a href="#harvest">Harvest</a>
+      <a href="#salts">Salts</a>
+      <a href="#visit">Visit</a>
+      <a href="#order">Order</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero" aria-label="Lenn salt harvest introduction">
+      <div class="hero__sticky">
+        <div class="hero__wordmark" aria-hidden="true">Lenn</div>
+        <canvas id="water" aria-label="Interactive tidal water surface"></canvas>
+        <div class="crystals" aria-hidden="true"></div>
+
+        <div class="hero__bottom">
+          <div>
+            <div class="eyebrow">Guérande, Atlantic coast</div>
+            <p class="hero__intro">Salt, drawn slowly from sea, sky and clay.</p>
+          </div>
+          <div class="scroll-mark">
+            <span>Follow the tide</span>
+            <i></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="manifesto">
+      <div class="eyebrow">Two hands / one marsh</div>
+      <div class="manifesto__copy">
+        We harvest only what the weather offers. <em>No machinery. No hurry.</em> Just a daily conversation with the water.
+      </div>
+      <div class="manifesto__foot">
+        <span>47°17′N / 2°25′W</span>
+        <span>Guérande, Brittany, France</span>
+      </div>
+    </section>
+
+    <section class="harvest" id="harvest">
+      <div class="harvest__sticky">
+        <aside class="harvest__meta">
+          <div class="eyebrow">The hand harvest</div>
+          <div>June — September<br>When sun and wind agree</div>
+        </aside>
+
+        <div class="harvest__moments">
+          <div class="harvest__line"></div>
+          <article class="moment">
+            <span class="moment__number">01 / GUIDE</span>
+            <h3>Let the sea in.</h3>
+            <p>Atlantic water travels through a patient network of channels and settles into shallow clay œillets, warmed by the day.</p>
+          </article>
+          <article class="moment">
+            <span class="moment__number">02 / WAIT</span>
+            <h3>Read the surface.</h3>
+            <p>Wind lifts the water. Sun concentrates it. A fine skin starts to gather — a brief, bright signal that the pond is ready.</p>
+          </article>
+          <article class="moment">
+            <span class="moment__number">03 / RAKE</span>
+            <h3>Draw it ashore.</h3>
+            <p>With a wooden las and a lousse à fleur, we gather each salt by hand. The colour, texture and flavour remain exactly of this place.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="salts" id="salts">
+      <div class="salts__top">
+        <h2 class="section-title">Three<br>ways of sea.</h2>
+        <p class="salts__lead">Three expressions from the same water. Keep them close to the stove, but use them at the table.</p>
+      </div>
+
+      <article class="product">
+        <div class="product__swatch" aria-hidden="true"></div>
+        <div class="product__info">
+          <span class="product__index">01 / 125 g tin</span>
+          <h3>Fleur<br>de sel</h3>
+          <div class="product__detail">
+            <div><strong>Feel</strong>Delicate, bright, dissolving</div>
+            <div><strong>Try it on</strong>Tomatoes, chocolate, grilled fish</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="product">
+        <div class="product__swatch" aria-hidden="true"></div>
+        <div class="product__info">
+          <span class="product__index">02 / 500 g bag</span>
+          <h3>Gros<br>sel</h3>
+          <div class="product__detail">
+            <div><strong>Feel</strong>Mineral, moist, substantial</div>
+            <div><strong>Try it on</strong>Roast vegetables, pasta water, crusts</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="product">
+        <div class="product__swatch" aria-hidden="true"></div>
+        <div class="product__info">
+          <span class="product__index">03 / 100 g tin</span>
+          <h3>Sel gris</h3>
+          <div class="product__detail">
+            <div><strong>Feel</strong>Deep, clay-kissed, savoury</div>
+            <div><strong>Try it on</strong>Butter, potatoes, slow-cooked beans</div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="visit" id="visit">
+      <div class="visit__image" role="img" aria-label="Abstract aerial view of tidal salt marsh channels"></div>
+      <div class="visit__content">
+        <div class="eyebrow">Come to the marsh</div>
+        <p>Walk the paths with us at low tide, then taste the day’s harvest by the shed.</p>
+        <div>
+          <p style="font-family:var(--mono);font-size:11px;line-height:1.7;letter-spacing:.02em;margin:0 0 24px;">
+            Small walks / June to September<br>
+            Thursday and Saturday mornings
+          </p>
+          <a class="button" href="mailto:bonjour@lenn-sel.fr?subject=Visit%20the%20marsh">Plan a visit</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="order">
+    <div class="eyebrow">From our marsh to your kitchen</div>
+    <div class="footer__links">
+      <a href="mailto:bonjour@lenn-sel.fr">Email us</a>
+      <a href="#salts">Shop salts</a>
+      <a href="#visit">Visit</a>
+    </div>
+    <div class="footer__word" aria-label="Lenn">Lenn</div>
+    <div class="footer__bottom">
+      <span>© 2025 Lenn Salt Harvest</span>
+      <span>Guérande · France</span>
+      <span>Made at the pace of weather</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.16/dist/lenis.min.js"></script>
+
+  <script>
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /*
+      WebGL water surface:
+      A lightweight custom fragment shader makes a moving water field.
+      Cursor positions become ripple centres; the Lenn wordmark beneath
+      visually refracts through the transparent, animated surface.
+    */
+    const canvas = document.querySelector("#water");
+    const gl = canvas.getContext("webgl", { alpha: true, antialias: true });
+
+    if (gl && !reducedMotion) {
+      const vertex = `
+        attribute vec2 a_position;
+        void main() {
+          gl_Position = vec4(a_position, 0.0, 1.0);
+        }
+      `;
+
+      const fragment = `
+        precision highp float;
+        uniform vec2 u_resolution;
+        uniform vec2 u_mouse;
+        uniform float u_time;
+        uniform float u_drain;
+
+        float wave(vec2 p, float t) {
+          return sin(p.x * 5.0 + t) * .09
+            + sin(p.y * 7.0 - t * .8) * .07
+            + sin((p.x + p.y) * 9.0 + t * .6) * .035;
+        }
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+          vec2 p = uv;
+          p.x *= u_resolution.x / u_resolution.y;
+
+          vec2 mouse = u_mouse;
+          mouse.x *= u_resolution.x / u_resolution.y;
+
+          float d = distance(p, mouse);
+          float ripple = sin(d * 46.0 - u_time * 5.0) * exp(-d * 4.6) * .18;
+          float water = wave(p, u_time * .34) + ripple;
+
+          vec3 deep = vec3(.20, .30, .33);
+          vec3 pale = vec3(.56, .67, .68);
+          vec3 colour = mix(deep, pale, uv.y + water + .18);
+
+          float streaks = smoothstep(.08, .0, abs(fract((p.y + water) * 17.0) - .5));
+          colour += streaks * .045;
+
+          float alpha = .92 - u_drain * .92;
+          gl_FragColor = vec4(colour, alpha);
+        }
+      `;
+
+      function shader(type, source) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, source);
+        gl.compileShader(s);
+        return s;
+      }
+
+      const program = gl.createProgram();
+      gl.attachShader(program, shader(gl.VERTEX_SHADER, vertex));
+      gl.attachShader(program, shader(gl.FRAGMENT_SHADER, fragment));
+      gl.linkProgram(program);
+      gl.useProgram(program);
+
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1, -1, 1, -1, -1, 1,
+        -1, 1, 1, -1, 1, 1
+      ]), gl.STATIC_DRAW);
+
+      const position = gl.getAttribLocation(program, "a_position");
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+      const resolution = gl.getUniformLocation(program, "u_resolution");
+      const mouse = gl.getUniformLocation(program, "u_mouse");
+      const time = gl.getUniformLocation(program, "u_time");
+      const drain = gl.getUniformLocation(program, "u_drain");
+
+      let pointer = { x: .5, y: .5 };
+      let waterDrain = 0;
+
+      function resizeCanvas() {
+        const dpr = Math.min(window.devicePixelRatio, 2);
+        canvas.width = innerWidth * dpr;
+        canvas.height = innerHeight * dpr;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+
+      function render(t) {
+        gl.uniform2f(resolution, canvas.width, canvas.height);
+        gl.uniform2f(mouse, pointer.x, pointer.y);
+        gl.uniform1f(time, t * .001);
+        gl.uniform1f(drain, waterDrain);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        requestAnimationFrame(render);
+      }
+
+      window.addEventListener("resize", resizeCanvas);
+      canvas.addEventListener("pointermove", (event) => {
+        pointer.x = event.clientX / innerWidth;
+        pointer.y = 1 - event.clientY / innerHeight;
+      });
+
+      resizeCanvas();
+      requestAnimationFrame(render);
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      const wordmark = document.querySelector(".hero__wordmark");
+      const crystals = document.querySelector(".crystals");
+
+      gsap.timeline({
+        scrollTrigger: {
+          trigger: ".hero",
+          start: "top top",
+          end: "bottom bottom",
+          scrub: true
+        }
+      })
+      .to(wordmark, {
+        yPercent: -15,
+        scale: .82,
+        filter: "blur(2px)",
+        opacity: .2,
+        ease: "none"
+      }, 0)
+      .to(canvas, {
+        opacity: 0,
+        ease: "none",
+        onUpdate() {
+          waterDrain = this.progress();
+        }
+      }, .35)
+      .to(crystals, { opacity: 1, ease: "none" }, .55);
+    } else {
+      canvas.style.opacity = ".68";
+    }
+
+    if (!reducedMotion) {
+      const lenis = new Lenis({
+        duration: 1.15,
+        smoothWheel: true,
+        touchMultiplier: 1.25
+      });
+
+      function raf(time) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      }
+      requestAnimationFrame(raf);
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      gsap.timeline({
+        scrollTrigger: {
+          trigger: ".harvest",
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 1
+        }
+      })
+      .to(".moment:nth-child(2)", { opacity: 1, y: 0, duration: 1 }, 0)
+      .to(".moment:nth-child(3)", { opacity: 1, y: 0, duration: 1 }, 1)
+      .to(".moment:nth-child(4)", { opacity: 1, y: 0, duration: 1 }, 2)
+      .to(".harvest__line", { height: "100%", duration: 3, ease: "none" }, 0);
+
+      gsap.set(".product", { clipPath: "inset(0 0 0 0)" });
+      gsap.utils.toArray(".product").forEach((product) => {
+        gsap.from(product.querySelector(".product__swatch"), {
+          scale: .93,
+          scrollTrigger: {
+            trigger: product,
+            start: "top 82%",
+            end: "top 30%",
+            scrub: true
+          }
+        });
+      });
+
+      gsap.from(".visit__image", {
+        clipPath: "inset(0 100% 0 0)",
+        scrollTrigger: {
+          trigger: ".visit",
+          start: "top 75%",
+          end: "top 20%",
+          scrub: true
+        }
+      });
+    }
+  </script>
+</body>
+</html>

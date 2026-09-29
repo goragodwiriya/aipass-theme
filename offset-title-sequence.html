@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OFFSET — Design Festival</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <style>
+    :root {
+      --bg: #f3f0e8;
+      --ink: #111111;
+      --accent: #ff3b19;
+      --grid: rgba(17, 17, 17, 0.16);
+      --ui: rgba(243, 240, 232, 0.9);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      isolation: isolate;
+      background: var(--bg);
+    }
+
+    .grid-wrap {
+      position: absolute;
+      inset: -22vmax;
+      z-index: 0;
+      transform-origin: 50% 50%;
+      pointer-events: none;
+    }
+
+    .grid {
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(to right, var(--grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+      background-size: 6.25vw 6.25vw;
+      min-width: 960px;
+      min-height: 960px;
+    }
+
+    .corner {
+      position: absolute;
+      z-index: 3;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1;
+      mix-blend-mode: multiply;
+    }
+
+    .corner.tl { top: 22px; left: 24px; }
+    .corner.tr { top: 22px; right: 24px; text-align: right; }
+    .corner.bl { bottom: 76px; left: 24px; }
+    .corner.br { bottom: 76px; right: 24px; text-align: right; }
+
+    .type-field {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+    }
+
+    .word {
+      position: absolute;
+      display: flex;
+      white-space: nowrap;
+      font-size: clamp(72px, 16.8vw, 290px);
+      font-weight: 900;
+      letter-spacing: -0.105em;
+      line-height: 0.72;
+      text-transform: uppercase;
+      will-change: transform;
+    }
+
+    .word span {
+      display: inline-block;
+      will-change: transform;
+    }
+
+    .word-a { top: 20%; left: 8%; }
+    .word-b { top: 46%; left: 19%; }
+    .word-c { top: 69%; left: 6%; }
+
+    .slash {
+      position: absolute;
+      width: 42vw;
+      height: 14px;
+      background: var(--accent);
+      transform-origin: left center;
+      z-index: 1;
+    }
+
+    .slash.one { top: 26%; left: -10%; transform: rotate(-18deg); }
+    .slash.two { top: 67%; right: -14%; transform: rotate(22deg); }
+
+    .lockup {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 4;
+      width: min(86vw, 1060px);
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .lockup-title {
+      display: flex;
+      justify-content: center;
+      overflow: hidden;
+      font-size: clamp(104px, 20vw, 350px);
+      font-weight: 900;
+      letter-spacing: -0.115em;
+      line-height: 0.68;
+      text-transform: uppercase;
+    }
+
+    .lockup-title span {
+      display: inline-block;
+      transform: translateY(150%);
+    }
+
+    .lockup-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: clamp(24px, 4vw, 54px);
+      padding-top: 12px;
+      border-top: 3px solid currentColor;
+      font-size: clamp(13px, 1.7vw, 24px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      transform: translateY(160%);
+    }
+
+    .transport {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      width: min(620px, calc(100% - 36px));
+      padding: 10px 12px;
+      transform: translateX(-50%);
+      border: 1px solid currentColor;
+      background: var(--ui);
+      color: var(--ink);
+      backdrop-filter: blur(8px);
+      font-family: "Courier New", monospace;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .transport button {
+      appearance: none;
+      min-width: 42px;
+      padding: 6px 8px;
+      border: 1px solid currentColor;
+      border-radius: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .transport button:hover,
+    .transport button.active {
+      background: var(--ink);
+      color: var(--bg);
+    }
+
+    .scrubber {
+      width: 100%;
+      accent-color: var(--ink);
+      cursor: ew-resize;
+    }
+
+    .time {
+      min-width: 60px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .speed {
+      display: flex;
+      gap: 4px;
+    }
+
+    @media (max-width: 600px) {
+      .grid { background-size: 12.5vw 12.5vw; }
+      .corner.tr,
+      .corner.br { display: none; }
+      .transport { grid-template-columns: auto 1fr auto; }
+      .speed { grid-column: 1 / -1; justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" id="stage">
+    <div class="grid-wrap" id="gridWrap">
+      <div class="grid"></div>
+    </div>
+
+    <div class="slash one" id="slashOne"></div>
+    <div class="slash two" id="slashTwo"></div>
+
+    <div class="corner tl">OFFSET / 2025</div>
+    <div class="corner tr">DESIGN FESTIVAL<br>VILNIUS, LT</div>
+    <div class="corner bl">STRICT GRID / LOOSE OUTCOMES</div>
+    <div class="corner br">14—16 MAY<br>THREE DAYS</div>
+
+    <section class="type-field" aria-label="Offset Design Festival title sequence">
+      <div class="word word-a" id="wordA" aria-hidden="true">
+        <span>O</span><span>F</span><span>F</span><span>S</span><span>E</span><span>T</span>
+      </div>
+      <div class="word word-b" id="wordB" aria-hidden="true">
+        <span>G</span><span>R</span><span>I</span><span>D</span>
+      </div>
+      <div class="word word-c" id="wordC" aria-hidden="true">
+        <span>M</span><span>O</span><span>V</span><span>E</span>
+      </div>
+    </section>
+
+    <section class="lockup" aria-label="Offset, 14 to 16 May, Vilnius">
+      <div class="lockup-title" id="lockupTitle">
+        <span>O</span><span>F</span><span>F</span><span>S</span><span>E</span><span>T</span>
+      </div>
+      <div class="lockup-meta" id="lockupMeta">
+        <span>14—16 May</span>
+        <span>Vilnius</span>
+      </div>
+    </section>
+
+    <nav class="transport" aria-label="Animation controls">
+      <button id="playPause" type="button" aria-label="Pause animation">PAUSE</button>
+      <input class="scrubber" id="scrubber" type="range" min="0" max="12" step="0.001" value="0" aria-label="Animation timeline" />
+      <output class="time" id="timecode">00:00.00</output>
+      <div class="speed" aria-label="Playback speed">
+        <button id="quarterSpeed" type="button">0.25×</button>
+        <button id="normalSpeed" type="button" class="active">1×</button>
+      </div>
+    </nav>
+  </main>
+
+  <script>
+    /*
+      Easing palette:
+      - power4.inOut: architectural acceleration and deceleration
+      - expo.out: sharp, poster-like arrivals
+      - steps(1): hard-cut colour changes on the beat
+      - back.out(1.4): controlled overshoot for the final lockup
+    */
+
+    const root = document.documentElement;
+    const DURATION = 12;
+
+    const letters = gsap.utils.toArray(".word span");
+    const lockupLetters = gsap.utils.toArray("#lockupTitle span");
+    const stage = document.querySelector("#stage");
+    const scrubber = document.querySelector("#scrubber");
+    const timecode = document.querySelector("#timecode");
+    const playPause = document.querySelector("#playPause");
+    const quarterSpeed = document.querySelector("#quarterSpeed");
+    const normalSpeed = document.querySelector("#normalSpeed");
+
+    const palettes = [
+      { bg: "#f3f0e8", ink: "#111111", accent: "#ff3b19", grid: "rgba(17,17,17,.16)", ui: "rgba(243,240,232,.90)" },
+      { bg: "#1c35ff", ink: "#f7f2e8", accent: "#f8ff2d", grid: "rgba(247,242,232,.20)", ui: "rgba(28,53,255,.90)" },
+      { bg: "#ff3b19", ink: "#111111", accent: "#f5e942", grid: "rgba(17,17,17,.20)", ui: "rgba(255,59,25,.90)" },
+      { bg: "#111111", ink: "#f5f1e8", accent: "#21e7a1", grid: "rgba(245,241,232,.19)", ui: "rgba(17,17,17,.90)" }
+    ];
+
+    function setPalette(index) {
+      const p = palettes[index];
+      root.style.setProperty("--bg", p.bg);
+      root.style.setProperty("--ink", p.ink);
+      root.style.setProperty("--accent", p.accent);
+      root.style.setProperty("--grid", p.grid);
+      root.style.setProperty("--ui", p.ui);
+    }
+
+    function formatTime(seconds) {
+      const totalFrames = Math.floor(seconds * 100);
+      const mins = Math.floor(totalFrames / 6000);
+      const secs = Math.floor((totalFrames % 6000) / 100);
+      const hundredths = totalFrames % 100;
+      return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}.${String(hundredths).padStart(2, "0")}`;
+    }
+
+    gsap.set(["#wordA", "#wordB", "#wordC"], { xPercent: -130 });
+    gsap.set(letters, { xPercent: -180, rotation: -18 });
+    gsap.set("#slashOne", { xPercent: -140 });
+    gsap.set("#slashTwo", { xPercent: 150 });
+    gsap.set("#lockupMeta", { yPercent: 160 });
+    gsap.set("#gridWrap", { rotation: -9, scaleX: 1.3, scaleY: 0.9 });
+    setPalette(0);
+
+    // One master 12-second looping GSAP timeline.
+    const tl = gsap.timeline({
+      repeat: -1,
+      defaults: { ease: "power4.inOut" }
+    });
+
+    tl.addLabel("start", 0)
+      .call(() => setPalette(0), [], 0)
+
+      .to("#gridWrap", {
+        duration: 1.4,
+        rotation: 8,
+        scaleX: 0.72,
+        scaleY: 1.28,
+        ease: "power4.inOut"
+      }, 0)
+
+      .to("#slashOne", {
+        duration: 0.5,
+        xPercent: 5,
+        ease: "expo.out"
+      }, 0.1)
+
+      .to("#wordA", {
+        duration: 0.65,
+        xPercent: 0,
+        ease: "expo.out"
+      }, 0.22)
+
+      .to("#wordA span", {
+        duration: 0.65,
+        xPercent: 0,
+        rotation: 0,
+        stagger: 0.045,
+        ease: "expo.out"
+      }, 0.22)
+
+      .call(() => setPalette(1), [], 1.5)
+
+      .to("#gridWrap", {
+        duration: 1.1,
+        rotation: -13,
+        scaleX: 1.45,
+        scaleY: 0.75
+      }, 1.5)
+
+      .to("#wordA", {
+        duration: 0.7,
+        xPercent: 135,
+        ease: "power4.in"
+      }, 1.58)
+
+      .to("#wordB", {
+        duration: 0.65,
+        xPercent: 0,
+        ease: "expo.out"
+      }, 1.7)
+
+      .to("#wordB span", {
+        duration: 0.6,
+        xPercent: 0,
+        rotation: 0,
+        stagger: 0.06,
+        ease: "expo.out"
+      }, 1.7)
+
+      .to("#slashTwo", {
+        duration: 0.55,
+        xPercent: -4,
+        ease: "expo.out"
+      }, 2.05)
+
+      .call(() => setPalette(2), [], 3.2)
+
+      .to("#gridWrap", {
+        duration: 1.25,
+        rotation: 18,
+        scaleX: 0.82,
+        scaleY: 1.5,
+        ease: "power4.inOut"
+      }, 3.2)
+
+      .to("#wordB", {
+        duration: 0.5,
+        yPercent: -180,
+        rotation: 8,
+        ease: "power4.in"
+      }, 3.25)
+
+      .to("#wordC", {
+        duration: 0.72,
+        xPercent: 0,
+        ease: "expo.out"
+      }, 3.5)
+
+      .to("#wordC span", {
+        duration: 0.68,
+        xPercent: 0,
+        rotation: 0,
+        stagger: 0.07,
+        ease: "expo.out"
+      }, 3.5)
+
+      .call(() => setPalette(3), [], 5.0)
+
+      .to("#gridWrap", {
+        duration: 1.2,
+        rotation: -4,
+        scaleX: 1.12,
+        scaleY: 1.12
+      }, 5.0)
+
+      .to("#wordC", {
+        duration: 0.7,
+        xPercent: 145,
+        ease: "power4.in"
+      }, 5.08)
+
+      .to("#slashOne", {
+        duration: 0.65,
+        xPercent: 155,
+        ease: "power4.in"
+      }, 5.1)
+
+      .to("#slashTwo", {
+        duration: 0.65,
+        xPercent: -155,
+        ease: "power4.in"
+      }, 5.1)
+
+      .call(() => setPalette(0), [], 6.3)
+
+      .to("#gridWrap", {
+        duration: 1.4,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        ease: "power4.inOut"
+      }, 6.3)
+
+      .to(lockupLetters, {
+        duration: 0.8,
+        yPercent: 0,
+        stagger: 0.065,
+        ease: "back.out(1.4)"
+      }, 6.55)
+
+      .to("#lockupMeta", {
+        duration: 0.62,
+        yPercent: 0,
+        ease: "expo.out"
+      }, 7.05)
+
+      .to("#gridWrap", {
+        duration: 1.2,
+        rotation: 2.5,
+        scaleX: 1.05,
+        scaleY: 0.96,
+        ease: "power4.inOut"
+      }, 8.0)
+
+      .to("#gridWrap", {
+        duration: 1.25,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        ease: "power4.inOut"
+      }, 9.2)
+
+      .to(["#lockupMeta", "#lockupTitle"], {
+        duration: 0.42,
+        xPercent: 130,
+        ease: "power4.in"
+      }, 10.65)
+
+      .to("#gridWrap", {
+        duration: 0.7,
+        rotation: -9,
+        scaleX: 1.3,
+        scaleY: 0.9,
+        ease: "power4.in"
+      }, 11.3)
+
+      .set(["#lockupMeta", "#lockupTitle"], { xPercent: 0 }, 11.999)
+      .set(lockupLetters, { yPercent: 150 }, 11.999)
+      .set("#lockupMeta", { yPercent: 160 }, 11.999)
+      .set(["#wordA", "#wordB", "#wordC"], { xPercent: -130, yPercent: 0, rotation: 0 }, 11.999)
+      .set(letters, { xPercent: -180, rotation: -18 }, 11.999)
+      .set("#slashOne", { xPercent: -140 }, 11.999)
+      .set("#slashTwo", { xPercent: 150 }, 11.999);
+
+    tl.duration(DURATION);
+
+    function updateTransport() {
+      const current = tl.time();
+      scrubber.value = current;
+      timecode.value = formatTime(current);
+    }
+
+    gsap.ticker.add(updateTransport);
+
+    playPause.addEventListener("click", () => {
+      if (tl.paused()) {
+        tl.play();
+        playPause.textContent = "PAUSE";
+        playPause.setAttribute("aria-label", "Pause animation");
+      } else {
+        tl.pause();
+        playPause.textContent = "PLAY";
+        playPause.setAttribute("aria-label", "Play animation");
+      }
+    });
+
+    scrubber.addEventListener("input", (event) => {
+      tl.pause();
+      tl.time(Number(event.target.value));
+      playPause.textContent = "PLAY";
+      playPause.setAttribute("aria-label", "Play animation");
+      updateTransport();
+    });
+
+    function setSpeed(speed) {
+      tl.timeScale(speed);
+      quarterSpeed.classList.toggle("active", speed === 0.25);
+      normalSpeed.classList.toggle("active", speed === 1);
+    }
+
+    quarterSpeed.addEventListener("click", () => setSpeed(0.25));
+    normalSpeed.addEventListener("click", () => setSpeed(1));
+  </script>
+</body>
+</html>
